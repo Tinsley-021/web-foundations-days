@@ -1,0 +1,266 @@
+# Library books REST API Specification
+
+## 1. Overview
+
+This document describes a REST API for managing books in a library. It defines the endpoints, HTTP methods, request bodies, query parameters and response status codes for frontend and backend development.
+
+Base URL: `/api/books`
+
+Data format: JSON
+
+## 2. Book Resource
+
+Each book contains the following fields:
+
+```json
+{
+  "id": 1,
+  "title": "Introduction to Programming",
+  "author": "John Smith",
+  "category": "Technology",
+  "available": true
+}
+```
+
+- `id`: Unique book identifier.
+- `title`: Book title.
+- `author`: Book author.
+- `category`: Book category.
+- `available`: Whether the book is available.
+
+The server generates the `id` when a book is created.
+
+## 3. API Endpoints
+
+### Endpoint 1: Get All Books
+
+- Method: `GET`
+- Path: `/api/books`
+- Purpose: Retrieve all books.
+- Request body: None.
+- Success status: `200 OK`.
+
+Example request:
+
+`GET /api/books`
+
+Example response:
+
+```json
+[
+  {
+    "id": 1,
+    "title": "Introduction to Programming",
+    "author": "John Smith",
+    "category": "Technology",
+    "available": true
+  }
+]
+```
+
+### Endpoint 2: Get a Book by ID
+
+- Method: `GET`
+- Path: `/api/books/{id}`
+- Purpose: Retrieve one book using its ID.
+- Request body: None.
+- Success status: `200 OK`.
+
+Example request:
+
+`GET /api/books/1`
+
+Example response:
+
+```json
+{
+  "id": 1,
+  "title": "Introduction to Programming",
+  "author": "John Smith",
+  "category": "Technology",
+  "available": true
+}
+```
+
+### Endpoint 3: Create a Book
+
+- Method: `POST`
+- Path: `/api/books`
+- Purpose: Add a new book.
+- Success status: `201 Created`.
+
+Example request body:
+
+```json
+{
+  "title": "Web Development Basics",
+  "author": "Mary Jones",
+  "category": "Technology",
+  "available": true
+}
+```
+
+The server generates the ID and returns the created book.
+
+### Endpoint 4: Replace a Book
+
+- Method: `PUT`
+- Path: `/api/books/{id}`
+- Purpose: Replace all editable fields of an existing book.
+- Success status: `200 OK`.
+
+Example request:
+
+`PUT /api/books/1`
+
+Example request body:
+
+```json
+{
+  "title": "Advanced Programming",
+  "author": "John Smith",
+  "category": "Education",
+  "available": false
+}
+```
+
+All required editable fields must be supplied.
+
+### Endpoint 5: Partially Update a Book
+
+- Method: `PATCH`
+- Path: `/api/books/{id}`
+- Purpose: Update selected fields of an existing book.
+- Success status: `200 OK`.
+
+Example request:
+
+`PATCH /api/books/1`
+
+Example request body:
+
+```json
+{
+  "available": false
+}
+```
+
+Only the supplied fields are changed. Other fields remain unchanged.
+
+### Endpoint 6: Delete a Book
+
+- Method: `DELETE`
+- Path: `/api/books/{id}`
+- Purpose: Remove a book from the library.
+- Request body: None.
+- Success status: `204 No Content`.
+
+Example request:
+
+`DELETE /api/books/1`
+
+A successful deletion returns no response body.
+
+## 4. Query Parameter Filtering
+
+The `GET /api/books` endpoint supports optional query parameters.
+
+| Parameter | Purpose | Example |
+|---|---|---|
+| `title` | Search by title | `?title=programming` |
+| `author` | Filter by author | `?author=John%20Smith` |
+| `category` | Filter by category | `?category=Technology` |
+| `available` | Filter by availability | `?available=true` |
+
+Example request:
+
+`GET /api/books?category=Technology&available=true`
+
+This returns books in the Technology category that are available.
+
+Filters can be combined. Text searches should be case-insensitive and match partial titles or author names.
+
+If no books match, the API returns `200 OK` with an empty array:
+
+```json
+[]
+```
+
+## 5. HTTP Error Scenarios
+
+### 400 Bad Request
+
+Return this status when the request is invalid.
+
+Examples:
+- A required title or author is missing.
+- A field has an invalid data type.
+- The book ID is not a valid positive integer.
+- The `available` query parameter is not `true` or `false`.
+- The JSON request body is malformed.
+
+Example response:
+
+```json
+{
+  "error": "Bad Request",
+  "message": "The book title is required."
+}
+```
+
+### 404 Not Found
+
+Return this status when the requested book does not exist.
+
+Examples:
+- Requesting `GET /api/books/999` when book 999 does not exist.
+- Updating a missing book using PUT or PATCH.
+- Deleting a book that does not exist.
+
+Example response:
+
+```json
+{
+  "error": "Not Found",
+  "message": "Book with ID 999 was not found."
+}
+```
+
+### Other Status Codes
+
+- `200 OK`: Request completed successfully.
+- `201 Created`: A new book was created.
+- `204 No Content`: A book was deleted successfully.
+- `405 Method Not Allowed`: The HTTP method is unsupported for the endpoint.
+- `415 Unsupported Media Type`: The request body uses an unsupported content type.
+- `500 Internal Server Error`: An unexpected server error occurred.
+
+## 6. Validation Rules
+
+- Title and author are required and cannot be blank.
+- Category is required and cannot be blank.
+- Availability must be a Boolean value.
+- IDs are unique and generated by the server.
+- PUT requires all editable fields.
+- PATCH accepts one or more valid editable fields.
+- Unknown book IDs return 404 for item-specific operations.
+
+## 7. Frontend and Backend Responsibilities
+
+### Frontend
+- Send requests to the documented endpoints.
+- Send JSON bodies with `Content-Type: application/json`.
+- Display books and filter results.
+- Handle successful responses and HTTP errors.
+- Validate user input before submitting forms.
+
+### Backend
+- Implement all six endpoints.
+- Validate request data and query parameters.
+- Store and retrieve book records.
+- Return the documented status codes and JSON error messages.
+- Ensure missing books return 404.
+
+## 8. Scope
+
+This document defines the API contract. It does not implement the library backend or connect the library API to the JSONPlaceholder users interface.
